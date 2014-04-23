@@ -7,14 +7,17 @@ Author: Bertrand Thirion, 2012--2014
 """
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 from nibabel import load
-from parietal.probabilistic_parcellation.group_parcellation import (
-    make_blobs, make_parcels, reproducibility_selection, parcel_selection, 
+from group_parcellation import (
+    make_parcels, reproducibility_selection, parcel_selection, 
     parcel_cv, rate_atlas)
 
 ###############################################################################
 # Get the data
+
+# This is local to Neurospin. 
+# Maybe could be set to work on public data by using a suitable downloader
+
 data_path = '/neurospin/tmp/localizer/glm/unsmoothed'
 
 subjects = ['bru2455', 'bru2457', 'bru2598', 'bru2838', 'bru2974', 'bru3058',
@@ -51,12 +54,14 @@ write_dir = os.path.join(os.getcwd(), 'results')
 if not os.path.exists(write_dir):
     os.mkdir(write_dir)
 
+###############################################################################
+
 # what shall we do in the present experiment ?
-do_parcel = False
+do_parcel = True
 do_parcel_selection = False
 do_parcel_reproducibility = False
 do_parcel_cv = False
-do_atlas = True
+do_atlas = False
 do_atlas_comparison = False
 
 k_range = [10, 20, 30, 40, 50, 70, 100, 150, 200, 300, 400, 500, 700, 1000,
@@ -98,7 +103,7 @@ if do_parcel_reproducibility:
         write_dir=write_dir)
 
 if do_atlas_comparison:
-    atlas = load('/home/bt206016/atlases/HarvardOxford-labels-3mm-slpit.nii')
+    atlas = load('HarvardOxford-labels-3mm-slpit.nii')
     labels = atlas.get_data()[grp_mask]
     ll = {'ward':[], 'kmeans':[], 'geometric':[], 'spectral':[], 'atlas':[]}
     for i in range(30):
@@ -115,7 +120,4 @@ if do_atlas_comparison:
         ll_, _ = rate_atlas(X_, labels, write_dir=write_dir)
         ll['atlas'].append(ll_)
 
-
-# display the images
-plt.show()
 
