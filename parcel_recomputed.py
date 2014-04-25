@@ -8,6 +8,10 @@ Author: Bertrand Thirion, 2012--2014
 import numpy as np
 import os
 from nibabel import load
+from nilearn import datasets
+from nilearn.input_data import NiftiMasker
+
+
 from group_parcellation import (
     make_parcels, reproducibility_selection, parcel_selection, 
     parcel_cv, rate_atlas)
@@ -15,34 +19,27 @@ from group_parcellation import (
 ###############################################################################
 # Get the data
 
-# This is local to Neurospin. 
-# Maybe could be set to work on public data by using a suitable downloader
+contrasts = ['horizontal vs vertical checkerboard',
+             'left vs right button press',
+             'button press vs calculation and sentence listening/reading',
+             'auditory processing vs visual processing',
+             'auditory&visual calculation vs sentences',
+             'sentence reading vs checkerboard']
 
-data_path = '/neurospin/tmp/localizer/glm/unsmoothed'
-
-subjects = ['bru2455', 'bru2457', 'bru2598', 'bru2838', 'bru2974', 'bru3058',
-            'bru3088', 'bru3174', 'bru3242', 'bru3260', 'bru3317', 'bru3320',
-            'bru3333', 'bru3334', 'bru3363', 'bru3368', 'bru3380', 'bru3385',
-            'bru3408', 'bru3414', 'bru3503', 'bru3504', 'bru3506', 'bru3507']
-
-mask_img = 'mask_GM_forFunc.nii'
-grp_mask = load(mask_img).get_data() > 0
-shape = load(mask_img).shape
-affine = load(mask_img).get_affine()
-
-contrasts = ['V-H', 'left-right', 'motor-cognitive', 'audio-video', 
-             'computation-sentences', 'reading-visual']
+nifti_masker = NiftiMasker('mask_GM_forFunc.nii')
+grp_mask = load(nifti_masker.mask).get_data()
+affine = load(nifti_masker.mask).get_affine()
 
 # Create the data matrix
-n_contrasts, n_subjects = len(contrasts), len(subjects)
-n_voxels = int(grp_mask.sum())
+n_contrasts, n_subjects = len(contrasts), 40
+subjects = ['S%02d' % i for i in range(n_subjects)]
+n_voxels = grp_mask.sum()
 X = np.zeros((n_voxels, n_contrasts, n_subjects))
-for ns, subject in enumerate(subjects):
-    subject_dir = os.path.join(data_path, subject) 
-    for nc, contrast in enumerate(contrasts):
-        X[:, nc, ns] = load(
-            os.path.join(subject_dir, '%s_z_map.nii' % contrast))\
-            .get_data()[grp_mask]
+
+for nc, contrast in enumerate(contrasts):
+    imgs = datasets.fetch_localizer_contrasts(
+        [contrast], n_subjects=n_subjects)['cmaps']
+    X[:, nc, :] = nifti_masker.fit_transform(imgs).T
 
 # improve the mask
 second_mask = (X == 0).sum(1).sum(1) < 100
