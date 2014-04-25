@@ -6,11 +6,11 @@ import numpy as np
 from numpy.testing import assert_almost_equal
 from nose.tools import assert_true, assert_equal
 from numpy.testing import assert_array_equal
-from parietal.probabilistic_parcellation.mixed_effects_parcel import (
+from mixed_effects_parcel import (
     log_likelihood, log_likelihood_,
     cluster_spatial_data, score_spatial_model, manual_optimization, 
     cluster_selection, em_inference, em_inference_fast)
-from parietal.probabilistic_parcellation.data_simulation import (
+from data_simulation import (
     generate_data, generate_spatial_data)
     
 
