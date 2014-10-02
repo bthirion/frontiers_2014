@@ -27,8 +27,8 @@ contrasts = ['horizontal vs vertical checkerboard',
              'sentence reading vs checkerboard']
 
 nifti_masker = NiftiMasker('mask_GM_forFunc.nii')
-grp_mask = load(nifti_masker.mask).get_data()
-affine = load(nifti_masker.mask).get_affine()
+grp_mask = load(nifti_masker.mask_img).get_data()
+affine = load(nifti_masker.mask_img).get_affine()
 
 # Create the data matrix
 n_contrasts, n_subjects = len(contrasts), 40
@@ -38,7 +38,8 @@ X = np.zeros((n_voxels, n_contrasts, n_subjects))
 
 for nc, contrast in enumerate(contrasts):
     imgs = datasets.fetch_localizer_contrasts(
-        [contrast], n_subjects=n_subjects)['cmaps']
+        [contrast], n_subjects=n_subjects,
+        data_dir='/tmp/')['cmaps']
     X[:, nc, :] = nifti_masker.fit_transform(imgs).T
 
 # improve the mask
